@@ -10,4 +10,4 @@ Run `forge build` to compile contracts
 
 Run `forge test -vvvv` to run test
 
-![alt text](https://github.com/[dev-cnote]/[RociLottery]/[main]/test.jpg?raw=true)
+![Alt text](github/RociLottery/test.png?raw=true "Title")
