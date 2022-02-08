@@ -8,5 +8,6 @@ cargo install --git https://github.com/gakonst/foundry --bin forge
 
 Run `forge build` to compile contracts
 
-Run `forge test -vvvv` to run test 
+Run `forge test -vvvv` to run test
 
+![alt text](https://github.com/[dev-cnote]/[RociLottery]/blob/[main]/test.jpg?raw=true)
