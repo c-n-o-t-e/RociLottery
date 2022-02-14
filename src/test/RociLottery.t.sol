@@ -195,19 +195,20 @@ contract RociLotteryTest is DSTest {
         hevm.warp(1600);
         rociLottery.draw();
 
-        uint256 winnerBalance = rociLottery.lotteryCurrency(
-            rociLottery.winner()
-        );
-        assertEq(totalSum, winnerBalance);
+        //wouldn't be able to get this info/assert due chainlink delay in calling the fulfillment function
+        // uint256 winnerBalance = rociLottery.lotteryCurrency(
+        //     rociLottery.winner()
+        // );
+        // assertEq(totalSum, winnerBalance);
 
-        for (uint256 i; i < playersAmount.length; i++) {
-            if (players[i].addr != rociLottery.winner()) {
-                assertEq(
-                    rociLottery.getUserWagerForActiveLottery(players[i].addr),
-                    0
-                );
-            }
-        }
+        // for (uint256 i; i < playersAmount.length; i++) {
+        //     if (players[i].addr != rociLottery.winner()) {
+        //         assertEq(
+        //             rociLottery.getUserWagerForActiveLottery(players[i].addr),
+        //             0
+        //         );
+        //     }
+        // }
     }
 
     receive() external payable {}
