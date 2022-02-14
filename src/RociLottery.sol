@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.7;
 
-import "./Interface/IMockRNG.sol";
 import "./SortitionSumTreeFactory.sol";
+import "chainlink/v0.8/VRFConsumerBase.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
-contract RociLottery is Ownable {
+contract RociLottery is Ownable, VRFConsumerBase {
     using SortitionSumTreeFactory for SortitionSumTreeFactory.SortitionSumTrees;
 
     uint256 public wagers;
@@ -15,6 +15,12 @@ contract RociLottery is Ownable {
 
     uint256 public wagerPeriod;
     uint256 public totalWagers;
+
+    uint256 fee; //chainlink fee
+    uint256 rng_;
+
+    bytes32 keyHash; //chainlink keyhash
+    bytes32 public uniqueID;
 
     uint256 public minimumFee = 1 ether;
     uint256 private constant MAX_TREE_LEAVES = 5;
@@ -25,13 +31,17 @@ contract RociLottery is Ownable {
 
     mapping(address => uint256) public lotteryCurrency;
 
-    IMockRNG rng;
+    mapping(bytes32 => uint256) public RNG;
+
     address public winner;
 
     SortitionSumTreeFactory.SortitionSumTrees internal sortitionSumTrees;
 
-    function setRngContractAddress(address _addr) external onlyOwner {
-        rng = IMockRNG(_addr);
+    constructor(address _vrfCoordinator, address _link)
+        VRFConsumerBase(_vrfCoordinator, _link)
+    {
+        fee = 0.1 * 10**18; //0.1 LINK
+        keyHash = 0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4;
     }
 
     function startLottery(uint256 _wagerPeriod) external onlyOwner {
@@ -92,9 +102,18 @@ contract RociLottery is Ownable {
     function draw() external {
         require(lotteryActive() == false, "lottery still active");
         require(wagers > 0, "no active wagers");
-        rng.requestRandomNumber(wagers);
 
-        uint256 randomNumber = rng.RNG(rng.uniqueID());
+        uniqueID = requestRandomness(keyHash, fee);
+    }
+
+    function fulfillRandomness(bytes32 requestId, uint256 randomness)
+        internal
+        override
+    {
+        uint256 randomNumber = (randomness % wagers) + 1;
+
+        RNG[uniqueID] = randomNumber;
+
         if (randomNumber == 0) revert("try again");
 
         winner = address(

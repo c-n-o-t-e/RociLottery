@@ -3,7 +3,6 @@ pragma solidity 0.8.7;
 
 import "ds-test/test.sol";
 import "../RociLottery.sol";
-import "../MockRNG.sol";
 
 interface Hevm {
     function prank(address h) external;
@@ -13,22 +12,30 @@ interface Hevm {
     function addr(uint256) external returns (address);
 
     function warp(uint256 x) external;
+
+    function roll(uint256 x) external;
+}
+
+interface test {
+    function transfer(address to, uint256 amount) external returns (bool);
 }
 
 contract RociLotteryTest is DSTest {
     RociLottery rociLottery;
-    MockRNG mockRNG;
 
     Hevm hevm = Hevm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
 
     function setUp() public {
-        rociLottery = new RociLottery();
-        mockRNG = new MockRNG();
-    }
+        rociLottery = new RociLottery(
+            0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9,
+            0xa36085F69e2889c224210F603D836748e7dC0088
+        );
 
-    function helper() internal {
-        hevm.prank(0x9f9433aa66A6E130D45bAc7c6754d859C030c897);
-        hevm.expectRevert("Ownable: caller is not the owner");
+        //sending 0.1 LINK to contract
+        test(0xa36085F69e2889c224210F603D836748e7dC0088).transfer(
+            address(rociLottery),
+            100000000000000000
+        );
     }
 
     function sendETH(uint256 amount, address _addr) public {
@@ -36,10 +43,8 @@ contract RociLotteryTest is DSTest {
     }
 
     function testNotOwner() public {
-        helper();
-        rociLottery.setRngContractAddress(hevm.addr(1));
-
-        helper();
+        hevm.prank(0x9f9433aa66A6E130D45bAc7c6754d859C030c897);
+        hevm.expectRevert("Ownable: caller is not the owner");
         rociLottery.startLottery(100);
     }
 
@@ -159,8 +164,6 @@ contract RociLotteryTest is DSTest {
     function testDraw() external {
         hevm.warp(1000);
         rociLottery.startLottery(100);
-
-        rociLottery.setRngContractAddress(address(mockRNG));
 
         uint64[10] memory playersAmount = [
             1 ether,
